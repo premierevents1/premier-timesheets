@@ -111,6 +111,10 @@ export default function PinLogin({ onLogin }: Props) {
           })}
         </div>
 
+        <div style={{ textAlign: "center", fontSize: 13, color: "#aaa", marginTop: 24 }}>
+          Forgotten your PIN? Speak to your manager.
+        </div>
+
       </div>
     </div>
   );
