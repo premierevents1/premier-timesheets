@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { SessionUser } from "@/lib/types";
 import { getLeave, getDept } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { formatDate, fmtTime } from "@/lib/utils";
 
 const secStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 };
 const avStyle: React.CSSProperties = { width: 34, height: 34, borderRadius: 10, background: "#212121", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0 };
@@ -117,7 +117,7 @@ export default function Approve({ user: _user }: Props) {
                       </span>
                     ) : (
                       <div style={{ fontSize: 12, color: "#777", marginTop: 2 }}>
-                        {e.start_time}–{e.end_time} · {e.break_mins}m break · <strong>{Number(e.total_hours).toFixed(1)}h</strong>
+                        {fmtTime(e.start_time)}–{fmtTime(e.end_time)} · {e.break_mins}m break · <strong>{Number(e.total_hours).toFixed(1)}h</strong>
                         {e.comment && <span style={{ color: "#999" }}> · {e.comment}</span>}
                       </div>
                     )}

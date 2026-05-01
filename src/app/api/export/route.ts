@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-server";
 import { getDept, leaveHours } from "@/lib/types";
-import { timeToFraction, minsToFraction } from "@/lib/utils";
+import { fmtTime, minsToHHMM } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
   const user = await getSession();
@@ -63,9 +63,9 @@ export async function GET(req: NextRequest) {
       "",
       e.user?.name ?? "",
       e.date,
-      timeToFraction(e.start_time),
-      timeToFraction(e.end_time),
-      minsToFraction(e.break_mins ?? 0),
+      fmtTime(e.start_time),
+      fmtTime(e.end_time),
+      minsToHHMM(e.break_mins ?? 0),
       hrs,
       "0",
       e.comment ?? "",

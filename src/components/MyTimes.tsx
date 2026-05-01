@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { SessionUser, TimesheetEntry } from "@/lib/types";
 import { getLeave } from "@/lib/types";
-import { formatDate, mondayOfWeek } from "@/lib/utils";
+import { formatDate, mondayOfWeek, fmtTime } from "@/lib/utils";
 import AddTime from "./AddTime";
 
 const secStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 };
@@ -98,7 +98,7 @@ export default function MyTimes({ user }: Props) {
                       </span>
                     ) : (
                       <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                        {e.start_time} → {e.end_time}
+                        {fmtTime(e.start_time)} → {fmtTime(e.end_time)}
                       </span>
                     )}
                   </div>

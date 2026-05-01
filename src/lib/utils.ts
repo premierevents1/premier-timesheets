@@ -29,6 +29,12 @@ export function calcHours(start: string, end: string, breakMins: number): number
   return Math.max(0, (eh * 60 + em - (sh * 60 + sm) - breakMins) / 60);
 }
 
+export function fmtTime(time: string | null): string {
+  if (!time) return "";
+  const parts = time.split(":");
+  return `${parts[0]}:${parts[1]}`;
+}
+
 export function timeToFraction(time: string | null): string {
   if (!time) return "0";
   const [h, m] = time.split(":").map(Number);
@@ -38,6 +44,12 @@ export function timeToFraction(time: string | null): string {
 export function minsToFraction(mins: number): string {
   if (!mins) return "0";
   return (mins / 1440).toFixed(6);
+}
+
+export function minsToHHMM(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${pad2(h)}:${pad2(m)}`;
 }
 
 export function leaveHours(leaveType: string): number {
