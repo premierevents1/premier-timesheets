@@ -1,0 +1,14 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/approve/route": "app/api/approve/route.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js",
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
+  "/api/entries/route": "app/api/entries/route.js",
+  "/api/export/count/route": "app/api/export/count/route.js",
+  "/api/entries/[id]/route": "app/api/entries/[id]/route.js",
+  "/api/export/route": "app/api/export/route.js",
+  "/api/forgot-pin/route": "app/api/forgot-pin/route.js",
+  "/api/pins/reset/route": "app/api/pins/reset/route.js",
+  "/page": "app/page.js",
+  "/api/auth/pin/route": "app/api/auth/pin/route.js"
+}
