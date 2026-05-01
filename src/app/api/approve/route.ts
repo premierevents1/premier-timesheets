@@ -23,13 +23,13 @@ export async function POST(req: NextRequest) {
       .eq("status", "pending");
 
     if (user.role !== "admin") {
-      // Manager: only their direct reports
+      // Manager: their direct reports + themselves
       const { data: reports } = await sb
         .from("users")
         .select("id")
         .eq("manager_id", user.id);
       const reportIds = (reports ?? []).map((r: { id: string }) => r.id);
-      query = query.in("user_id", reportIds);
+      query = query.in("user_id", [...reportIds, user.id]);
     }
 
     const { data } = await query;
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       .select("id")
       .eq("manager_id", user.id);
     const reportIds = new Set((reports ?? []).map((r: { id: string }) => r.id));
+    reportIds.add(user.id);
 
     const { data: entries } = await sb
       .from("timesheet_entries")
@@ -91,8 +92,7 @@ export async function GET() {
       .select("id")
       .eq("manager_id", user.id);
     const reportIds = (reports ?? []).map((r: { id: string }) => r.id);
-    if (!reportIds.length) return NextResponse.json({ entries: [] });
-    query = query.in("user_id", reportIds);
+    query = query.in("user_id", [...reportIds, user.id]);
   }
 
   const { data, error } = await query;
