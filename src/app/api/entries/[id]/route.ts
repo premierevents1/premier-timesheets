@@ -10,7 +10,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const sb = createAdminClient();
 
-  // Verify ownership and pending status
   const { data: existing } = await sb
     .from("timesheet_entries")
     .select("id, user_id, status")
@@ -18,15 +17,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .single();
 
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (existing.user_id !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (existing.status !== "pending") return NextResponse.json({ error: "Only pending entries can be edited" }, { status: 400 });
 
+  // Staff can only edit their own entries; managers/admin can edit their reports' entries
+  if (user.role === "staff") {
+    if (existing.user_id !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  } else if (user.role !== "admin") {
+    // Manager: allow own entries + direct reports
+    if (existing.user_id !== user.id) {
+      const { data: reports } = await sb.from("users").select("id").eq("manager_id", user.id);
+      const reportIds = new Set((reports ?? []).map((r: { id: string }) => r.id));
+      if (!reportIds.has(existing.user_id)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   const body = await req.json();
-  const { department_id, start_time, end_time, break_mins, leave_type, comment } = body;
+  const { department_id, start_time, end_time, break_mins, leave_type, comment, managerApprove } = body;
 
   const total_hours = leave_type
     ? leave_type.includes("½") ? 3.75 : 7.5
     : calcHours(start_time, end_time, break_mins ?? 0);
+
+  const newStatus = managerApprove ? "approved" : "pending";
+  const approvedBy = managerApprove ? user.id : null;
 
   const { data, error } = await sb
     .from("timesheet_entries")
@@ -38,8 +51,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       total_hours,
       leave_type: leave_type ?? null,
       comment: comment ?? "",
-      status: "pending",
-      approved_by: null,
+      status: newStatus,
+      approved_by: approvedBy,
     })
     .eq("id", id)
     .select(`
@@ -59,7 +72,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       user_name: row.user?.name ?? "",
       user_first: row.user?.first_name ?? "",
       user_last: row.user?.last_name ?? "",
-      approver_name: null,
+      approver_name: row.approver?.name ?? null,
       user: undefined,
       approver: undefined,
     },
