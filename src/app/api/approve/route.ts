@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   // body: { action: 'approve' | 'reject', ids: string[] }  OR  { action: 'approve-all' }
-  const { action, ids } = body as { action: string; ids?: string[] };
+  const { action, ids, reason } = body as { action: string; ids?: string[]; reason?: string };
 
   let targetIds: string[] = ids ?? [];
 
@@ -57,10 +57,12 @@ export async function POST(req: NextRequest) {
   }
 
   const newStatus = action === "reject" ? "rejected" : "approved";
+  const updatePayload: Record<string, unknown> = { status: newStatus, approved_by: user.id };
+  if (action === "reject" && reason) updatePayload.manager_note = reason;
 
   const { error } = await sb
     .from("timesheet_entries")
-    .update({ status: newStatus, approved_by: user.id })
+    .update(updatePayload)
     .in("id", targetIds);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

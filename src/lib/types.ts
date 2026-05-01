@@ -47,6 +47,7 @@ export interface TimesheetEntry {
   status: EntryStatus;
   approved_by: string | null;
   approver_name: string | null;
+  manager_note: string | null;
   created_at: string;
   updated_at: string;
 }

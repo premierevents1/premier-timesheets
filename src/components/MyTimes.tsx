@@ -86,9 +86,9 @@ export default function MyTimes({ user }: Props) {
               const dotCol = e.status === "approved" ? "#10b981" : e.status === "rejected" ? "#ef4444" : "#f59e0b";
 
               return (
+                <div key={e.id} style={{ borderBottom: "1px solid #f0f0f2" }}>
                 <div
-                  key={e.id}
-                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 0", borderBottom: "1px solid #f0f0f2", fontSize: 13 }}
+                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 0", fontSize: 13 }}
                 >
                   <div style={{ flex: 1.3, fontWeight: 600, color: "#444" }}>{formatDate(e.date)}</div>
                   <div style={{ flex: 2.5, color: "#666" }}>
@@ -114,6 +114,12 @@ export default function MyTimes({ user }: Props) {
                       Edit
                     </button>
                   )}
+                </div>
+                {e.status === "rejected" && e.manager_note && (
+                  <div style={{ fontSize: 11, color: "#ef4444", padding: "2px 0 6px", lineHeight: 1.4 }}>
+                    Reason: {e.manager_note}
+                  </div>
+                )}
                 </div>
               );
             })}

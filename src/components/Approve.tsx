@@ -57,6 +57,8 @@ export default function Approve({ user: _user }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditForm | null>(null);
   const [saving, setSaving] = useState(false);
+  const [rejecting, setRejecting] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -70,15 +72,17 @@ export default function Approve({ user: _user }: Props) {
 
   useEffect(() => { load(); }, [load]);
 
-  async function act(ids: string[], action: "approve" | "reject" | "approve-all") {
+  async function act(ids: string[], action: "approve" | "reject" | "approve-all", reason?: string) {
     const firstId = ids[0];
     setActing(action === "approve-all" ? "all" : firstId);
     await fetch("/api/approve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, ids }),
+      body: JSON.stringify({ action, ids, reason }),
     });
     setActing(null);
+    setRejecting(null);
+    setRejectReason("");
     load();
   }
 
@@ -189,15 +193,15 @@ export default function Approve({ user: _user }: Props) {
                     <div style={{ display: "flex", gap: 6, opacity: isActing ? 0.5 : 1 }}>
                       <button
                         style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #d1d5db", background: isEditingThis ? "#f4f4f5" : "#fff", color: "#555", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                        onClick={() => isEditingThis ? (setEditing(null), setEditForm(null)) : startEdit(e)}
+                        onClick={() => { isEditingThis ? (setEditing(null), setEditForm(null)) : startEdit(e); setRejecting(null); setRejectReason(""); }}
                         disabled={!!acting || saving}
                         title="Edit"
                       >
                         ✎
                       </button>
                       <button
-                        style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #fca5a5", background: "#fff", color: "#ef4444", fontSize: 16, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                        onClick={() => act([e.id], "reject")}
+                        style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #fca5a5", background: rejecting === e.id ? "#fef2f2" : "#fff", color: "#ef4444", fontSize: 16, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        onClick={() => { setRejecting(rejecting === e.id ? null : e.id); setRejectReason(""); setEditing(null); setEditForm(null); }}
                         disabled={!!acting || saving}
                       >
                         ✕
@@ -211,6 +215,34 @@ export default function Approve({ user: _user }: Props) {
                       </button>
                     </div>
                   </div>
+
+                  {rejecting === e.id && (
+                    <div style={{ background: "#fef2f2", borderRadius: 10, padding: 12, marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#ef4444", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Reason for rejection</div>
+                      <input
+                        style={{ ...inputStyle, marginBottom: 8 }}
+                        type="text"
+                        placeholder="Optional — staff will see this"
+                        value={rejectReason}
+                        onChange={e2 => setRejectReason(e2.target.value)}
+                      />
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "none", background: "#ef4444", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: acting ? 0.5 : 1 }}
+                          onClick={() => act([e.id], "reject", rejectReason || undefined)}
+                          disabled={!!acting}
+                        >
+                          {acting === e.id ? "Rejecting…" : "Confirm Reject"}
+                        </button>
+                        <button
+                          style={{ padding: "9px 14px", borderRadius: 8, border: "1px solid #e0e0e0", background: "#fff", color: "#555", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
+                          onClick={() => { setRejecting(null); setRejectReason(""); }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {isEditingThis && editForm && (
                     <div style={{ background: "#f9fafb", borderRadius: 10, padding: 12, marginBottom: 8 }}>

@@ -7,6 +7,36 @@ const lblStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#
 const inputStyle: React.CSSProperties = { width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd", fontSize: 15, boxSizing: "border-box", background: "#fff", fontFamily: "inherit" };
 const btnStyle: React.CSSProperties = { width: "100%", padding: "15px 0", borderRadius: 14, border: "none", background: "#e63946", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 16px rgba(230,57,70,.25)", fontFamily: "inherit" };
 
+function isoDate(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+function today() { return isoDate(new Date()); }
+
+function shortcutRanges() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+
+  const thisMonthFrom = isoDate(new Date(y, m, 1));
+  const lastMonthFrom = isoDate(new Date(y, m - 1, 1));
+  const lastMonthTo = isoDate(new Date(y, m, 0));
+
+  const day = now.getDay();
+  const thisMonday = new Date(now);
+  thisMonday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  const thisWeekFrom = isoDate(thisMonday);
+
+  const lastMonday = new Date(thisMonday);
+  lastMonday.setDate(thisMonday.getDate() - 7);
+  const lastSunday = new Date(thisMonday);
+  lastSunday.setDate(thisMonday.getDate() - 1);
+  const lastWeekFrom = isoDate(lastMonday);
+  const lastWeekTo = isoDate(lastSunday);
+
+  return { thisMonthFrom, lastMonthFrom, lastMonthTo, thisWeekFrom, lastWeekFrom, lastWeekTo };
+}
+
 export default function ExportView() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -14,15 +44,12 @@ export default function ExportView() {
   const [downloading, setDownloading] = useState(false);
   const [done, setDone] = useState(false);
 
-  // Fetch count when range changes
   useEffect(() => {
     let cancelled = false;
     async function fetchCount() {
       const params = new URLSearchParams();
       if (from) params.set("from", from);
       if (to) params.set("to", to);
-      // Use HEAD-like GET to just count — we reuse the export endpoint and count rows
-      // We'll use a lightweight API call instead
       const res = await fetch(`/api/export/count?${params}`);
       if (!cancelled && res.ok) {
         const data = await res.json();
@@ -54,11 +81,42 @@ export default function ExportView() {
     setDownloading(false);
   }
 
+  const r = shortcutRanges();
+  const shortcuts = [
+    { label: "This month", from: r.thisMonthFrom, to: today() },
+    { label: "Last month", from: r.lastMonthFrom, to: r.lastMonthTo },
+    { label: "This week", from: r.thisWeekFrom, to: today() },
+    { label: "Last week", from: r.lastWeekFrom, to: r.lastWeekTo },
+  ];
+
   return (
     <div style={{ padding: 18 }}>
       <div style={secStyle}>Export for Xero</div>
       <div style={{ fontSize: 13, color: "#888", marginBottom: 16, lineHeight: 1.5 }}>
         Downloads approved timesheets as CSV matching the Deputy format.
+      </div>
+
+      {/* Quick shortcuts */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
+        {shortcuts.map(s => (
+          <button
+            key={s.label}
+            onClick={() => { setFrom(s.from); setTo(s.to); }}
+            style={{
+              padding: "8px 0",
+              borderRadius: 10,
+              border: `1px solid ${from === s.from && to === s.to ? "#e63946" : "#ddd"}`,
+              background: from === s.from && to === s.to ? "#fdf2f3" : "#fff",
+              color: from === s.from && to === s.to ? "#e63946" : "#555",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
 
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>

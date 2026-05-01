@@ -8,8 +8,9 @@ import MyTimes from "./MyTimes";
 import Approve from "./Approve";
 import ExportView from "./ExportView";
 import PinMgr from "./PinMgr";
+import StaffMgr from "./StaffMgr";
 
-type Tab = "add" | "my" | "approve" | "export" | "pins";
+type Tab = "add" | "my" | "approve" | "export" | "pins" | "staff";
 
 interface Props {
   user: SessionUser;
@@ -106,6 +107,9 @@ export default function AppShell({ user, onLogout }: Props) {
         {(isMgr || isAdmin) && (
           <TabBtn active={tab === "pins"} onClick={() => setTab("pins")} icon="🔑" label="PINs" />
         )}
+        {isAdmin && (
+          <TabBtn active={tab === "staff"} onClick={() => setTab("staff")} icon="👥" label="Staff" />
+        )}
       </div>
 
       {/* Content */}
@@ -115,6 +119,7 @@ export default function AppShell({ user, onLogout }: Props) {
         {tab === "approve" && <Approve user={user} />}
         {tab === "export" && <ExportView />}
         {tab === "pins" && <PinMgr user={user} />}
+        {tab === "staff" && <StaffMgr />}
       </div>
     </div>
   );
